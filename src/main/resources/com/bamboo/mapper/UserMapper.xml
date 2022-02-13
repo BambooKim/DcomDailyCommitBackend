@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bamboo.mapper.UserMapper">
+
+    <insert id="insertUser">
+        insert into tbl_user (id, name)
+        values (#{githubId}, #{korName})
+    </insert>
+
+    <!--
+    <select id="getUserList" resultType="com.bamboo.domain.UserVO">
+        <![CDATA[
+            select uname, githubid from tbl_user where uno > 0
+        ]]>
+    </select>
+-->
+
+</mapper>
