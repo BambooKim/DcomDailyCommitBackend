@@ -10,12 +10,35 @@
         values (#{githubId}, #{korName})
     </insert>
 
-    <!--
-    <select id="getUserList" resultType="com.bamboo.domain.UserVO">
+    <select id="getUserDataforResponse" resultType="com.bamboo.domain.UserVO">
         <![CDATA[
-            select uname, githubid from tbl_user where uno > 0
+            select id, name, paidfine, startedat, commitsinarow, totalcommits, rankpower, userimg, commitdaycount
+            from tbl_user order by rankpower desc
         ]]>
     </select>
--->
 
+    <select id="getUserDataforUpdate" resultType="com.bamboo.domain.UserDataRecord">
+        select id, startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount
+        from tbl_user
+    </select>
+
+    <update id="updateUserData">
+        <![CDATA[
+            update tbl_user
+            set
+                userimg = #{userImg},
+                lastupdate = #{lastUpdate},
+                totalcommits = #{totalCommits},
+                commitdaycount = #{commitDayCount},
+                commitsinarow = #{commitsInARow},
+                rankpower = #{rankPower}
+            where id = #{id}
+        ]]>
+    </update>
+
+    <delete id="deleteUser">
+        <![CDATA[
+            delete from tbl_user where id = #{githubId}
+        ]]>
+    </delete>
 </mapper>

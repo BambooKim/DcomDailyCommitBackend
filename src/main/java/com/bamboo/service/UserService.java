@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface UserService {
     public void registerUser(UserDTO user);
-    public List<UserVO> getUserList();
+    public List<UserVO> getUserListforResponse();
     public void updateDB();
+    public void deleteUser(UserDTO user);
 }

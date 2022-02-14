@@ -1,6 +1,7 @@
 package com.bamboo.service;
 
 import com.bamboo.domain.UserDTO;
+import com.bamboo.domain.UserDataRecord;
 import com.bamboo.domain.UserVO;
 import com.bamboo.mapper.UserMapper;
 import lombok.AllArgsConstructor;
@@ -12,9 +13,7 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Log4j2
 @Service
@@ -31,70 +30,123 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserVO> getUserList() {
-        log.info("getUserList.....");
+    public List<UserVO> getUserListforResponse() {
+        log.info("getUserListforUpdate.....");
 
-        return mapper.getUserList();
+        Calendar calendar = new GregorianCalendar();
+        calendar.add(Calendar.DATE, -1);
+        Date yesterday = calendar.getTime();
+
+        List<UserVO> list = mapper.getUserDataforResponse();
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).setRank(i+1);
+
+            long elapsedTimeSec = (yesterday.getTime() - list.get(i).getStartedAt().getTime()) / 1000;
+            int elapsedTimeDay = (int) (elapsedTimeSec / (24 * 60 * 60));
+            
+            list.get(i).setUnpaidFine(elapsedTimeDay * 500 - list.get(i).getUnpaidFine());
+            
+            list.get(i).setParticipationRate(list.get(i).getCommitDayCount() + " / " + elapsedTimeDay);
+        }
+
+        return list;
     }
 
     @Override
     public void updateDB() {
-        /*
-        ArrayList<UserVO> list = (ArrayList<UserVO>) mapper.getUserList();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        Calendar calendar = new GregorianCalendar();
+        Date today = calendar.getTime();
+        calendar.add(Calendar.DATE, -1);
+        Date yesterday = calendar.getTime();
+
+        List<UserDataRecord> list = mapper.getUserDataforUpdate();
 
         list.forEach(elem -> {
+            String githubId = elem.getId();
+            Date startedAt = elem.getStartedAt();
+            Date lastUpdate = elem.getLastUpdate();
 
+            try {
+                // Github 프로필 이미지 링크 크롤링
+                String url = "https://github.com/" + githubId;
+                Connection connection = Jsoup.connect(url);
 
+                Document document = connection.get();
+                Elements avatarElem = document.select("div.js-profile-editable-replace img").first()
+                        .getElementsByAttribute("src");     // may producee nullpointerexception.
+                String avatarUrl = avatarElem.get(0).attr("src");
 
+                log.info("\n\n");
+                log.info(githubId);
+                log.info(avatarUrl);
 
-        });
-
-         */
-
-
-        String githubId = "codeisneverodd"; //elem.getId();
-
-
-        try {
-            String url = "https://github.com/" + githubId;
-            Connection connection = Jsoup.connect(url);
-
-            Document document = connection.get();
-            Elements avatarElem = document.select("div.js-profile-editable-replace img").first().getElementsByAttribute("src"); //("avatar avatar-user width-full border color-bg-default");
-            String avatarUrl = avatarElem.get(0).attr("src");
-
-            log.info(avatarUrl);
-
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            String startDateString = "2022-02-01";  // 나중에 스터디 시작일로 바꿔야 함.
-            Date startDate = simpleDateFormat.parse(startDateString);
-
-            Elements rects = document.select("div.js-calendar-graph rect");
-
-            rects.forEach(tags -> {
-                String data_date = tags.attr("data-date");
-
-                if (!data_date.isEmpty()) {
-                    try {
-                        Date rectDate = simpleDateFormat.parse(data_date);
-
-                        // 스터디 시작일과 각 잔디의 날짜를 비교함. 시작일 이후의 잔디들만 선택.
-                        if (rectDate.getTime() >= startDate.getTime()) {
-                            int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
-
-                            log.info(data_date + " " + commitCountofDay);
-                        }
-                    } catch (Exception e) {
-                        log.error(e);
-                    }
+                // 오늘 날짜, 스터디 시작 날짜, 마지막 디비 업데이트 날짜 비교
+                Date crawlingStart;
+                if (lastUpdate == null) {
+                    // 등록 후 한번도 반영하지 않았다면... 크롤링 시작은 스터디 시작일!
+                    crawlingStart = startedAt;
+                } else {
+                    // 한번이라도 반영한 적 있다면... 크롤링 시작은 마지막 업데이트 날짜일!
+                    crawlingStart = lastUpdate;
                 }
-            });
 
-            // List<String> dateList = rects.eachAttr("data-date");
+                calendar.setTime(crawlingStart);
+                calendar.add(Calendar.DATE, -1);
 
-            //log.info(dateList);
-        } catch (Exception e) {
-            log.error(e);
-        }
+                Elements rects = document.select("div.js-calendar-graph rect");
+
+                rects.forEach(tags -> {
+                    String data_date = tags.attr("data-date");
+
+                    if (!data_date.isEmpty()) {
+                        try {
+                            Date rectDate = simpleDateFormat.parse(data_date);
+
+                            // 스터디 시작일과 각 잔디의 날짜를 비교함. 시작일 이후의 어제까지의 잔디들만 선택.
+                            if (calendar.getTime().getTime() <= rectDate.getTime()
+                                    && rectDate.getTime() <= yesterday.getTime()) {
+                                int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
+                                elem.setTotalCommits(elem.getTotalCommits() + commitCountofDay);
+
+                                if (commitCountofDay != 0) {
+                                    // 어떤 날에 커밋을 1개 이상 했다면...
+
+                                    elem.setCommitDayCount(elem.getCommitDayCount() + 1);
+
+                                    elem.setCommitsInARow(elem.getCommitsInARow() + 1);
+                                } else {
+                                    // 어떤 날에 커밋이 아예 없다면...
+
+                                    elem.setCommitsInARow(0);
+                                }
+
+                                log.info(data_date + " " + commitCountofDay);
+                            }
+                        } catch (Exception e) {
+                            log.error(e);
+                        }
+                    }
+                });
+
+                elem.setRankPower(elem.getCommitsInARow() * 10 + elem.getCommitDayCount() * 5
+                                    + elem.getTotalCommits() - (elem.getUnpaidFine() / 50));
+                elem.setUserImg(avatarUrl);
+                elem.setLastUpdate(today);
+
+                // 이후 업데이트 sql 매퍼 호출.
+                mapper.updateUserData(elem);
+            } catch (Exception e) {
+                log.error(e);
+            }
+        });
+    }
+
+    @Override
+    public void deleteUser(UserDTO user) {
+        log.info("Delete User....." + user);
+
+        mapper.deleteUser(user);
     }
 }

@@ -6,10 +6,10 @@ import com.bamboo.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -19,34 +19,48 @@ public class ApiController {
 
     private UserService service;
 
+    // 유저 등록 후 메인페이지로 리다이렉트
+    // Postman 테스트 시 x-www-form-urlencoded
     @PostMapping("/register-user")
-    public String registerUser(UserDTO user) {
+    public RedirectView registerUser(UserDTO user) {
         log.info("Register User: " + user);
 
         service.registerUser(user);
 
-        return "Registered";
+        RedirectView redirectView = new RedirectView();
+        redirectView.setUrl("http://127.0.0.1:5500");
+
+        return redirectView;
     }
 
     // refresh 하지 않고 단순히 디비에서 꺼내와서 보내줌
     @GetMapping(value = "/fetch-user", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ArrayList<UserVO> fetchUser() {
-        ArrayList<UserVO> list = new ArrayList<>();
-        list = (ArrayList<UserVO>) service.getUserList();
+    public List<UserVO> fetchUser() {
+
+        List<UserVO> list = service.getUserListforResponse();
+
+        log.info(list);
 
         return list;
     }
 
     // 새로 크롤링 해서 디비 업데이트 후 꺼내와서 보내줌
     @GetMapping(value = "/refresh-user", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ArrayList<UserVO> refreshUser() {
+    public List<UserVO> refreshUser() {
 
-        return null;
+        // Service를 통해 디비 업데이트
+        service.updateDB();
+
+        return fetchUser();
     }
 
+    // 유저 삭제
+    // Postman 테스트 시 x-www-form-urlencoded
     @PostMapping("/delete-user")
     public String deleteUser(String githubId) {
         log.info("Delete User: " + githubId);
+
+        service.deleteUser(new UserDTO(githubId, null));
 
         return "Deleted";
     }
