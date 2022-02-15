@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
             long elapsedTimeSec = (yesterday.getTime() - list.get(i).getStartedAt().getTime()) / 1000;
             int elapsedTimeDay = (int) (elapsedTimeSec / (24 * 60 * 60));
             
-            list.get(i).setUnpaidFine(elapsedTimeDay * 500 - list.get(i).getUnpaidFine());
+            list.get(i).setUnpaidFine((elapsedTimeDay - list.get(i).getCommitDayCount()) * 500 - list.get(i).getPaidFine());
             
             list.get(i).setParticipationRate(list.get(i).getCommitDayCount() + " / " + elapsedTimeDay);
         }
