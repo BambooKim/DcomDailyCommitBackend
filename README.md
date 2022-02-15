@@ -2,10 +2,10 @@
 Spring Project of Backend Part for DCOM Daily Commit Study 2022 System 
 
 
-###API
+### API
 <hr/>
 
-####get
+#### get
 /api/register-user
 <br/><br/>
 초기 유저 등록에 쓰이는 API. 추후 Github oauth 전환 시 변경 예정. <br/><br/>
@@ -21,17 +21,17 @@ response<br/>
 <br/>
 <hr/>
 
-####get
+#### get
 /api/fetch-user
 <br/><br/>
 크롤링하지 않고, 기존의 데이터베이스에 있는 유저 정보들을 그대로 가져올 때 쓰는 API.
 
 <br/>
 
-####request<br/>
+#### request<br/>
 None.<br/><br/>
 
-####response<br/>
+#### response<br/>
 <pre><code>
 [
     {
@@ -80,17 +80,17 @@ None.<br/><br/>
 </code></pre>
 <hr/>
 
-####get
+#### get
 /api/refresh-user
 <br/>
 신규 등록이나 데이터 동기화 등 데이터 업데이트가 필요할 때, 크롤링을 실행한 뒤 처리한 데이터들을 데이터베이스에 업데이트한 뒤, 업데이트한 정보들을 받아올 때 쓰는 API.
 
 <br/>
 
-####request<br/>
+#### request<br/>
 None.<br/><br/>
 
-####response
+#### response
 <pre><code>
 [
     {
@@ -139,19 +139,19 @@ None.<br/><br/>
 </code></pre>
 <hr/>
 
-####post
+#### post
 /api/delete-user
 
 <br/>
 
-####request<br/>
+#### request<br/>
 x-www-form-urlencoded
 <pre><code>
 githubId: {githubId}<br/>
 </code></pre>
 <br/>
 
-####response
+#### response
 <pre><code>
 String - "deleted"<br/>
 </code></pre>
