@@ -12,7 +12,7 @@ Spring Project of Backend Part for DCOM Daily Commit Study 2022 System
 
 **Request**: x-www-form-urlencoded
 
-```json
+```
 githubId: {githubId}
 korName: {korName}
 ```
@@ -34,21 +34,21 @@ korName: {korName}
 ```json
 [
     {
-        "id": 깃허브 아이디,
-        "name": 실명,
-        "paidFine": 낸 벌금,
-        "startedAt": 등록한 날짜,
-        "unpaidFine": 내지않은 벌금,
-        "commitsInARow": 최근 연속 커밋 횟수,
-        "totalCommits": 총 커밋 횟수,
-        "participationRate": 커밋일 +'/'+ 참여일 ,
-        "rankPower": comitsInARow * 10 + commitDayCount * 5 + totalCommits - (unpaidFine/50) 의 계산 값,
-        "rank": 현재 랭크,
-        "userImg": 유저 이미지 주소,
-        "commitDayCount": 등록한 날짜 이후로 커밋한 날 카운트
+        "id": "깃허브 아이디",
+        "name": "실명",
+        "paidFine": "낸 벌금",
+        "startedAt": "등록한 날짜",
+        "unpaidFine": "내지않은 벌금",
+        "commitsInARow": "최근 연속 커밋 횟수",
+        "totalCommits": "총 커밋 횟수",
+        "participationRate": "커밋일 + '/'+ 참여일" ,
+        "rankPower": "comitsInARow * 10 + commitDayCount * 5 + totalCommits - (unpaidFine/50) 의 계산 값",
+        "rank": "현재 랭크",
+        "userImg": "유저 이미지 주소",
+        "commitDayCount": "등록한 날짜 이후로 커밋한 날 카운트"
     },
     {
-    	//Another user
+    	"Another user data here"
     }
 ]
 ```
@@ -108,13 +108,13 @@ korName: {korName}
 
 **Request**: x-www-form-urlencoded
 
-```json
+```
 githubId: {githubId}
 ```
 
 **Response**:
 
-```json
+```
 String - "deleted"
 ```
 
