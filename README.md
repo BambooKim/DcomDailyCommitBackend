@@ -8,7 +8,7 @@ Spring Project of Backend Part for DCOM Daily Commit Study 2022 System
 
 > 초기 유저 등록에 쓰이는 API. 추후 Github oauth 전환 시 변경 예정.
 
-**Method**: GET
+**Method**: POST
 
 **Request**: x-www-form-urlencoded
 
@@ -17,7 +17,23 @@ githubId: {githubId}
 korName: {korName}
 ```
 
-**Response**: 메인페이지로 리디렉션. 추후 변경 가능.
+**Response**: 
+```json
+{
+    "id": "깃허브 아이디",
+    "name": "실명",
+    "paidFine": "낸 벌금",
+    "startedAt": "등록한 날짜",
+    "unpaidFine": "내지않은 벌금",
+    "commitsInARow": "최근 연속 커밋 횟수",
+    "totalCommits": "총 커밋 횟수",
+    "participationRate": "커밋일 + '/'+ 참여일" ,
+    "rankPower": "comitsInARow * 10 + commitDayCount * 5 + totalCommits - (unpaidFine/50) 의 계산 값",
+    "rank": -1,
+    "userImg": "유저 이미지 주소",
+    "commitDayCount": "등록한 날짜 이후로 커밋한 날 카운트"
+}
+```
 
 ---
 

@@ -19,18 +19,18 @@ public class ApiController {
 
     private UserService service;
 
-    // 유저 등록 후 메인페이지로 리다이렉트
+    // 유저 등록 후 등록된 유저 정보 넘김
     // Postman 테스트 시 x-www-form-urlencoded
     @PostMapping("/register-user")
-    public RedirectView registerUser(UserDTO user) {
+    public UserVO registerUser(UserDTO user) {
         log.info("Register User: " + user);
 
+        // DB에 UserDTO의 유저 등록
         service.registerUser(user);
+        // 크롤링 후 UserVO 등록 및 리턴
+        UserVO init = service.initAndGetUser(user);
 
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("http://127.0.0.1:5500");
-
-        return redirectView;
+        return init;
     }
 
     // refresh 하지 않고 단순히 디비에서 꺼내와서 보내줌

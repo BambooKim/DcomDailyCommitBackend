@@ -21,4 +21,7 @@ public interface UserMapper {
 
     // 회원 삭제.
     public void deleteUser(UserDTO user);
+
+    // 등록된 회원 정보 가져오기
+    public UserDataRecord getUser(UserDTO user);
 }

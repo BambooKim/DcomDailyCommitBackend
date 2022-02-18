@@ -10,4 +10,5 @@ public interface UserService {
     public List<UserVO> getUserListforResponse();
     public void updateDB();
     public void deleteUser(UserDTO user);
+    public UserVO initAndGetUser(UserDTO user);
 }

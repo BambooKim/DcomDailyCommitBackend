@@ -41,4 +41,11 @@
             delete from tbl_user where id = #{githubId}
         ]]>
     </delete>
+
+    <select id="getUser" resultType="com.bamboo.domain.UserDataRecord">
+        <![CDATA[
+        select id, name, startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount
+        from tbl_user where id = #{githubId}
+        ]]>
+    </select>
 </mapper>
