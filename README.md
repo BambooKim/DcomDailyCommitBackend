@@ -131,8 +131,7 @@ githubId: {githubId}
 **Response**:
 
 ```
-String - "deleted"
+String - {githubId}
 ```
 
-추후 변경 가능.
 
