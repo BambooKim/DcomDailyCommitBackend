@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 @Log4j2
 @AllArgsConstructor
 public class ApiController {
@@ -62,6 +63,6 @@ public class ApiController {
 
         service.deleteUser(new UserDTO(githubId, null));
 
-        return "Deleted";
+        return githubId;
     }
 }
