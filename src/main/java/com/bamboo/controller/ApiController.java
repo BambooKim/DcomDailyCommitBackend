@@ -2,12 +2,12 @@ package com.bamboo.controller;
 
 import com.bamboo.domain.UserDTO;
 import com.bamboo.domain.UserVO;
+import com.bamboo.exception.*;
 import com.bamboo.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.List;
 
@@ -22,8 +22,8 @@ public class ApiController {
 
     // 유저 등록 후 등록된 유저 정보 넘김
     // Postman 테스트 시 x-www-form-urlencoded
-    @PostMapping("/register-user")
-    public UserVO registerUser(UserDTO user) {
+    @PostMapping(value = "/register-user", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserVO registerUser(UserDTO user) throws NoGithubIdFoundException, WrongAccessCodeException, UserAlreadyExistsException {
         log.info("Register User: " + user);
 
         // DB에 UserDTO의 유저 등록
@@ -58,11 +58,12 @@ public class ApiController {
     // 유저 삭제
     // Postman 테스트 시 x-www-form-urlencoded
     @PostMapping("/delete-user")
-    public String deleteUser(String githubId) {
-        log.info("Delete User: " + githubId);
+    public String deleteUser(UserDTO user) throws NoUserExistsException, WrongUserCodeException {
+        log.info("Delete User: " + user);
 
-        service.deleteUser(new UserDTO(githubId, null));
+        //service.deleteUser(new UserDTO(githubId, null, 0, null));
+        service.deleteUser(user);
 
-        return githubId;
+        return user.getGithubId();
     }
 }

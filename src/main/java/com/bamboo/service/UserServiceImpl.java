@@ -3,6 +3,7 @@ package com.bamboo.service;
 import com.bamboo.domain.UserDTO;
 import com.bamboo.domain.UserDataRecord;
 import com.bamboo.domain.UserVO;
+import com.bamboo.exception.*;
 import com.bamboo.mapper.UserMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -12,6 +13,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -20,12 +26,49 @@ import java.util.*;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private final static String ACCESS_CODE = "access";
+
     private UserMapper mapper;
 
     @Override
-    public void registerUser(UserDTO user) {
+    public void registerUser(UserDTO user) throws NoGithubIdFoundException, WrongAccessCodeException, UserAlreadyExistsException {
         log.info("registerUser....." + user);
 
+        // 1. AccessCode의 유효성 검사.
+        String inputAccessCode = user.getAccessCode();
+        if (!inputAccessCode.equals(ACCESS_CODE)) {
+            throw new WrongAccessCodeException("Wrong Access Code");
+        }
+
+        // 2. githubId가 Github에 존재하는지 확인한다.
+        int statusCode = 0;
+        try {
+            URL url = new URL("https://api.github.com/users/" + user.getGithubId());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            statusCode = connection.getResponseCode();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        log.debug("Code: " + statusCode);
+        if (statusCode == 404) {
+            throw new NoGithubIdFoundException("No ID found");
+        }
+
+        // 3. 이미 디비에 아이디가 존재하는 경우.
+        UserDTO checkUserObject = mapper.getUserForCheck(user);
+        if (checkUserObject != null) {
+            throw new UserAlreadyExistsException("User already exists");
+        }
+
+        // 4. 예외가 없다면 디비에 저장.
         mapper.insertUser(user);
     }
 
@@ -61,8 +104,10 @@ public class UserServiceImpl implements UserService {
         calendar.add(Calendar.DATE, -1);
         Date yesterday = calendar.getTime();
 
+        // DB의 각 레코드들이 리스트 형태로 반환된다.
         List<UserDataRecord> list = mapper.getUserDataforUpdate();
 
+        // 리스트의 각 레코드들, 즉 각 유저들마다 반복하여 크롤링한다.
         list.forEach(elem -> {
             String githubId = elem.getId();
             Date startedAt = elem.getStartedAt();
@@ -78,9 +123,9 @@ public class UserServiceImpl implements UserService {
                         .getElementsByAttribute("src");     // may producee nullpointerexception.
                 String avatarUrl = avatarElem.get(0).attr("src");
 
-                log.info("\n\n");
-                log.info(githubId);
-                log.info(avatarUrl);
+                log.debug("\n\n");
+                log.debug(githubId);
+                log.debug(avatarUrl);
 
                 // 오늘 날짜, 스터디 시작 날짜, 마지막 디비 업데이트 날짜 비교
                 Date crawlingStart;
@@ -122,7 +167,7 @@ public class UserServiceImpl implements UserService {
                                     elem.setCommitsInARow(0);
                                 }
 
-                                log.info(data_date + " " + commitCountofDay);
+                                log.debug(data_date + " " + commitCountofDay);
                             }
                         } catch (Exception e) {
                             log.error(e);
@@ -144,8 +189,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(UserDTO user) {
+    public void deleteUser(UserDTO user) throws NoUserExistsException, WrongUserCodeException {
         log.info("Delete User....." + user);
+
+        UserDTO savedUserIdAndCode = mapper.getUserForCheck(user);
+        log.debug(savedUserIdAndCode);
+
+        // 1. 입력한 user의 github id가 존재하는지 확인한다.
+        if (savedUserIdAndCode == null) {
+            throw new NoUserExistsException("user not found");
+        }
+        // 2. 입력한 userCode와 저장된 userCode가 일치하는지 확인한다.
+        if (savedUserIdAndCode.getUserCode() != user.getUserCode()) {
+            throw new WrongUserCodeException("wrong user code");
+        }
 
         mapper.deleteUser(user);
     }
@@ -179,9 +236,9 @@ public class UserServiceImpl implements UserService {
                     .getElementsByAttribute("src");     // may producee nullpointerexception.
             String avatarUrl = avatarElem.get(0).attr("src");
 
-            log.info("\n\n");
-            log.info(githubId);
-            log.info(avatarUrl);
+            log.debug("\n\n");
+            log.debug(githubId);
+            log.debug(avatarUrl);
 
             // 오늘 날짜, 스터디 시작 날짜, 마지막 디비 업데이트 날짜 비교
             Date crawlingStart;

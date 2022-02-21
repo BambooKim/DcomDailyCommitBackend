@@ -24,4 +24,7 @@ public interface UserMapper {
 
     // 등록된 회원 정보 가져오기
     public UserDataRecord getUser(UserDTO user);
+
+    // 등록된 회원 (githubId, userCode) 가져오기
+    public UserDTO getUserForCheck(UserDTO user);
 }

@@ -15,6 +15,8 @@ Spring Project of Backend Part for DCOM Daily Commit Study 2022 System
 ```
 githubId: {githubId}
 korName: {korName}
+userCode: {userCode}
+accessCode: {accessCode}
 ```
 
 **Response**: 
@@ -126,6 +128,7 @@ korName: {korName}
 
 ```
 githubId: {githubId}
+userCode: {userCode}
 ```
 
 **Response**:

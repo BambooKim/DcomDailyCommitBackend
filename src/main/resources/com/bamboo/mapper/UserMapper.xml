@@ -6,8 +6,8 @@
 <mapper namespace="com.bamboo.mapper.UserMapper">
 
     <insert id="insertUser">
-        insert into tbl_user (id, name)
-        values (#{githubId}, #{korName})
+        insert into tbl_user (id, name, usercode)
+        values (#{githubId}, #{korName}, #{userCode})
     </insert>
 
     <select id="getUserDataforResponse" resultType="com.bamboo.domain.UserVO">
@@ -46,6 +46,12 @@
         <![CDATA[
         select id, name, startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount
         from tbl_user where id = #{githubId}
+        ]]>
+    </select>
+
+    <select id="getUserForCheck" resultType="com.bamboo.domain.UserDTO">
+        <![CDATA[
+            select id as githubId, usercode from tbl_user where id = #{githubId}
         ]]>
     </select>
 </mapper>

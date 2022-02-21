@@ -27,4 +27,5 @@
     <!-- mybatis mapper package scan -->
     <mybatis-spring:scan base-package="com.bamboo.mapper"/>
     <context:component-scan base-package="com.bamboo.service"/>
+    <context:component-scan base-package="com.bamboo.exception"/>
 </beans>
