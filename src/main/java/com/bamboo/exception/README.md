@@ -78,7 +78,7 @@ Spring Project of Backend Part for DCOM Daily Commit Study 2022 System
 
 **Error Code**: DEL-002
 
-**Status**: 404 NOT_FOUND
+**Status**: 403 FORBIDDEN
 
 **Response**:
 ```json

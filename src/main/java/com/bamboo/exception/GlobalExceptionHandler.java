@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
                 .code("DEL-002")
                 .message(e.getMessage()).build();
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .contentType(MediaType.APPLICATION_JSON).body(errorResponse);
     }
 
