@@ -31,8 +31,14 @@ public class UserServiceImpl implements UserService {
     private UserMapper mapper;
 
     @Override
-    public void registerUser(UserDTO user) throws NoGithubIdFoundException, WrongAccessCodeException, UserAlreadyExistsException {
+    public void registerUser(UserDTO user) throws NoGithubIdFoundException, WrongAccessCodeException, UserAlreadyExistsException, BlankArgumentException {
         log.info("registerUser....." + user);
+
+        // 0. request body의 각 field가 비어있는지 검사.
+        if (user.getGithubId().equals("") || user.getKorName() == null
+                || user.getAccessCode() == null || user.getUserCode() == null) {
+            throw new BlankArgumentException("Blank argument");
+        }
 
         // 1. AccessCode의 유효성 검사.
         String inputAccessCode = user.getAccessCode();
@@ -189,11 +195,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(UserDTO user) throws NoUserExistsException, WrongUserCodeException {
+    public void deleteUser(UserDTO user) throws NoUserExistsException, WrongUserCodeException, BlankArgumentException {
         log.info("Delete User....." + user);
 
         UserDTO savedUserIdAndCode = mapper.getUserForCheck(user);
         log.debug(savedUserIdAndCode);
+
+        // 0. request body의 각 field가 비어있는지 검사.
+        if (user.getGithubId().equals("") || user.getUserCode() == null) {
+            throw new BlankArgumentException("Blank argument");
+        }
 
         // 1. 입력한 user의 github id가 존재하는지 확인한다.
         if (savedUserIdAndCode == null) {

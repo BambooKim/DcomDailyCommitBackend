@@ -64,5 +64,25 @@ public class GlobalExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON).body(errorResponse);
     }
 
+    // common001 - body의 field가 비어있을 때
+    @ExceptionHandler(BlankArgumentException.class)
+    protected ResponseEntity<?> handleBlankArg(BlankArgumentException e) {
+        final ErrorResponse errorResponse = ErrorResponse.builder()
+                .code("COM-001")
+                .message(e.getMessage()).build();
 
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON).body(errorResponse);
+    }
+
+    // common002 - argument의 타입이 올바르지 않을 때
+    @ExceptionHandler(NumberFormatException.class)
+    protected ResponseEntity<?> handleArgTypeUnmatch(NumberFormatException e) {
+        final ErrorResponse errorResponse = ErrorResponse.builder()
+                .code("COM-002")
+                .message(e.getMessage()).build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON).body(errorResponse);
+    }
 }

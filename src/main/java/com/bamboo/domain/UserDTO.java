@@ -8,7 +8,7 @@ public class UserDTO {
 
     private String githubId;
     private String korName;
-    private int userCode;
+    private Integer userCode;
     private String accessCode;
 
 }

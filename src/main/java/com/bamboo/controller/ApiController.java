@@ -23,7 +23,8 @@ public class ApiController {
     // 유저 등록 후 등록된 유저 정보 넘김
     // Postman 테스트 시 x-www-form-urlencoded
     @PostMapping(value = "/register-user", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserVO registerUser(UserDTO user) throws NoGithubIdFoundException, WrongAccessCodeException, UserAlreadyExistsException {
+    public UserVO registerUser(UserDTO user)
+            throws NoGithubIdFoundException, WrongAccessCodeException, UserAlreadyExistsException, BlankArgumentException {
         log.info("Register User: " + user);
 
         // DB에 UserDTO의 유저 등록
@@ -58,10 +59,10 @@ public class ApiController {
     // 유저 삭제
     // Postman 테스트 시 x-www-form-urlencoded
     @PostMapping("/delete-user")
-    public String deleteUser(UserDTO user) throws NoUserExistsException, WrongUserCodeException {
+    public String deleteUser(UserDTO user)
+            throws NoUserExistsException, WrongUserCodeException, BlankArgumentException {
         log.info("Delete User: " + user);
 
-        //service.deleteUser(new UserDTO(githubId, null, 0, null));
         service.deleteUser(user);
 
         return user.getGithubId();

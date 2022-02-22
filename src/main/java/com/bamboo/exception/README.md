@@ -89,3 +89,20 @@ Spring Project of Backend Part for DCOM Daily Commit Study 2022 System
 ```
 
 ---
+### Common 001
+
+> 빈 값이면 안 되는 request의 body field가 비어있을 때
+
+**Error Code**: COM-001
+
+**Status**: 400 BAD_REQUEST
+
+**Response**:
+```json
+{
+    "code": "COM-001",
+    "message": "{message}"
+}
+```
+
+---
