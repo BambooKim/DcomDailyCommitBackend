@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
         }
 
         log.debug("Code: " + statusCode);
-        if (statusCode == 404) {
+        if (statusCode == 404 || statusCode == 400) {
             throw new NoGithubIdFoundException("No ID found");
         }
 
@@ -211,7 +211,7 @@ public class UserServiceImpl implements UserService {
             throw new NoUserExistsException("user not found");
         }
         // 2. 입력한 userCode와 저장된 userCode가 일치하는지 확인한다.
-        if (savedUserIdAndCode.getUserCode() != user.getUserCode()) {
+        if (!savedUserIdAndCode.getUserCode().equals(user.getUserCode())) {
             throw new WrongUserCodeException("wrong user code");
         }
 
