@@ -231,7 +231,7 @@ public class UserServiceImpl implements UserService {
         calendar.add(Calendar.DATE, -1);
         Date yesterday = calendar.getTime();
 
-        UserDataRecord record = mapper.getUser(user); // 레코드 하나만 디비에서 불러옴 = mapper.getUserDataforUpdate();
+        UserDataRecord record = mapper.getUser(user); // 레코드 하나만 디비에서 불러옴
 
         String githubId = record.getId();
         Date startedAt = record.getStartedAt();
@@ -303,6 +303,11 @@ public class UserServiceImpl implements UserService {
                     + record.getTotalCommits() - (record.getUnpaidFine() / 50));
             record.setUserImg(avatarUrl);
             record.setLastUpdate(today);
+
+            long elapsedTimeSec = (yesterday.getTime() - record.getStartedAt().getTime()) / 1000;
+            int elapsedTimeDay = (int) (elapsedTimeSec / (24 * 60 * 60));
+
+            record.setParticipationRate(record.getCommitDayCount() + " / " + elapsedTimeDay);
 
             // 이후 업데이트 sql 매퍼 호출.
             mapper.updateUserData(record);
