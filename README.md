@@ -22,18 +22,19 @@ accessCode: {accessCode}
 **Response**: 
 ```json
 {
-    "id": "깃허브 아이디",
-    "name": "실명",
-    "paidFine": "낸 벌금",
-    "startedAt": "등록한 날짜",
-    "unpaidFine": "내지않은 벌금",
-    "commitsInARow": "최근 연속 커밋 횟수",
-    "totalCommits": "총 커밋 횟수",
-    "participationRate": "커밋일 + '/'+ 참여일" ,
-    "rankPower": "comitsInARow * 10 + commitDayCount * 5 + totalCommits - (unpaidFine/50) 의 계산 값",
-    "rank": -1,
-    "userImg": "유저 이미지 주소",
-    "commitDayCount": "등록한 날짜 이후로 커밋한 날 카운트"
+  "id": "깃허브 아이디",
+  "name": "실명",
+  "paidFine": "낸 벌금",
+  "startedAt": "등록한 날짜",
+  "unpaidFine": "내지않은 벌금",
+  "commitsInARow": "최근 연속 커밋 횟수",
+  "totalCommits": "총 커밋 횟수",
+  "elapsedDay": "참여일(등록 날짜부터 1일, 현재 날짜까지)" ,
+  "rankPower": "comitsInARow * 10 + commitDayCount * 5 + totalCommits - (unpaidFine/50) 의 계산 값",
+  "rank": -1,
+  "userImg": "유저 이미지 주소",
+  "commitDayCount": "등록한 날짜 이후로 커밋한 날 카운트",
+  "isCommitToday": "오늘 커밋했으면 1, 없으면 0"
 }
 ```
 
@@ -59,11 +60,12 @@ accessCode: {accessCode}
         "unpaidFine": "내지않은 벌금",
         "commitsInARow": "최근 연속 커밋 횟수",
         "totalCommits": "총 커밋 횟수",
-        "participationRate": "커밋일 + '/'+ 참여일" ,
+        "elapsedDay": "참여일(등록 날짜부터 1일, 현재 날짜까지)" ,
         "rankPower": "comitsInARow * 10 + commitDayCount * 5 + totalCommits - (unpaidFine/50) 의 계산 값",
         "rank": "현재 랭크",
         "userImg": "유저 이미지 주소",
-        "commitDayCount": "등록한 날짜 이후로 커밋한 날 카운트"
+        "commitDayCount": "등록한 날짜 이후로 커밋한 날 카운트",
+        "isCommitToday": "오늘 커밋했으면 1, 없으면 0"
     },
     {
     	"Another user data here"
@@ -71,40 +73,7 @@ accessCode: {accessCode}
 ]
 ```
 
-**Response 예시**
 
-```json
-[
-    {
-        "id": "justkode",
-        "name": "김수한무",
-        "paidFine": 0,
-        "startedAt": 1636785193000,
-        "unpaidFine": 46000,
-        "commitsInARow": 43,
-        "totalCommits": 131,
-        "participationRate": "67 / 92",
-        "rankPower": 896,
-        "rank": 1,
-        "userImg": "https://avatars.githubusercontent.com/u/28499550?v=4",
-        "commitDayCount": 67
-    },
-    {
-        "id": "codeisneverodd",
-        "name": "김경현",
-        "paidFine": 0,
-        "startedAt": 1639317384000,
-        "unpaidFine": 31500,
-        "commitsInARow": 0,
-        "totalCommits": 79,
-        "participationRate": "43 / 63",
-        "rankPower": 294,
-        "rank": 2,
-        "userImg": "https://avatars.githubusercontent.com/u/54318460?v=4",
-        "commitDayCount": 43
-    }
-]
-```
 
 ---
 
