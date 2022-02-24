@@ -39,7 +39,7 @@
 
     <update id="setFalseIsCommitToday">
         <![CDATA[
-            update table_user set discommittoday = 0 where id = #{id}
+            update table_user set iscommittoday = 0 where id = #{id}
         ]]>
     </update>
 
