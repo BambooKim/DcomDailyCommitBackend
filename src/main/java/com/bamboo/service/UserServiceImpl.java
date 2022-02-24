@@ -90,12 +90,14 @@ public class UserServiceImpl implements UserService {
         for (int i = 0; i < list.size(); i++) {
             list.get(i).setRank(i+1);
 
-            long elapsedTimeSec = (yesterday.getTime() - list.get(i).getStartedAt().getTime()) / 1000;
-            int elapsedTimeDay = (int) (elapsedTimeSec / (24 * 60 * 60));
-            
+            int yesterdayTimeDay = (int) yesterday.getTime() / (1000 * 24 * 60 * 60);
+            int startedTimeDay = (int) list.get(i).getStartedAt().getTime() / (1000 * 24 * 60 * 60) - 1;
+
+            int elapsedTimeDay = yesterdayTimeDay - startedTimeDay;
+
             list.get(i).setUnpaidFine((elapsedTimeDay - list.get(i).getCommitDayCount()) * 500 - list.get(i).getPaidFine());
-            
-            list.get(i).setParticipationRate(list.get(i).getCommitDayCount() + " / " + elapsedTimeDay);
+
+            list.get(i).setElapsedDay(elapsedTimeDay + 1);
         }
 
         return list;
@@ -141,6 +143,10 @@ public class UserServiceImpl implements UserService {
                 } else {
                     // 한번이라도 반영한 적 있다면... 크롤링 시작은 마지막 업데이트 날짜일!
                     crawlingStart = lastUpdate;
+
+                    if (lastUpdate.getTime() < today.getTime()) {
+                        mapper.setFalseIsCommitToday(elem);
+                    }
                 }
 
                 calendar.setTime(crawlingStart);
@@ -174,6 +180,12 @@ public class UserServiceImpl implements UserService {
                                 }
 
                                 log.debug(data_date + " " + commitCountofDay);
+                            } else if (rectDate.getTime() > yesterday.getTime()) {
+                                int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
+
+                                if (commitCountofDay > 0) {
+                                    elem.setIsCommitToday(1);
+                                }
                             }
                         } catch (Exception e) {
                             log.error(e);
@@ -292,6 +304,12 @@ public class UserServiceImpl implements UserService {
                             }
 
                             log.info(data_date + " " + commitCountofDay);
+                        } else if (rectDate.getTime() > yesterday.getTime()) {
+                            int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
+
+                            if (commitCountofDay > 0) {
+                                record.setIsCommitToday(1);
+                            }
                         }
                     } catch (Exception e) {
                         log.error(e);
@@ -304,10 +322,11 @@ public class UserServiceImpl implements UserService {
             record.setUserImg(avatarUrl);
             record.setLastUpdate(today);
 
-            long elapsedTimeSec = (yesterday.getTime() - record.getStartedAt().getTime()) / 1000;
-            int elapsedTimeDay = (int) (elapsedTimeSec / (24 * 60 * 60));
+            int yesterdayTimeDay = (int) yesterday.getTime() / (1000 * 24 * 60 * 60);
+            int startedTimeDay = (int) record.getStartedAt().getTime() / (1000 * 24 * 60 * 60) - 1;
+            int elapsedTimeDay = yesterdayTimeDay - startedTimeDay;
 
-            record.setParticipationRate(record.getCommitDayCount() + " / " + elapsedTimeDay);
+            record.setElapsedDay(elapsedTimeDay + 1);
 
             // 이후 업데이트 sql 매퍼 호출.
             mapper.updateUserData(record);
@@ -322,11 +341,12 @@ public class UserServiceImpl implements UserService {
         initialUser.setUnpaidFine(record.getUnpaidFine());
         initialUser.setCommitsInARow(record.getCommitsInARow());
         initialUser.setTotalCommits(record.getTotalCommits());
-        initialUser.setParticipationRate(record.getParticipationRate());
+        initialUser.setElapsedDay(record.getElapsedDay());
         initialUser.setRankPower(record.getRankPower());
         initialUser.setRank(-1);
         initialUser.setUserImg(record.getUserImg());
         initialUser.setCommitDayCount(record.getCommitDayCount());
+        initialUser.setIsCommitToday(record.getIsCommitToday());
 
         return initialUser;
     }

@@ -8,6 +8,7 @@
 
     <util:properties id="dataSourceConfig" location="classpath:db-connection.properties"/>
 
+    <!--
     <bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
         <property name="driverClassName"
                   value="#{dataSourceConfig['driverClassName']}"></property>
@@ -16,12 +17,38 @@
         <property name="username" value="#{dataSourceConfig['dbUserName']}"></property>
         <property name="password" value="#{dataSourceConfig['dbPassword']}"></property>
     </bean>
+
     <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource"
           destroy-method="close">
         <constructor-arg ref="hikariConfig"/>
     </bean>
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+-->
+    <bean id="dataSource"
+          class="org.apache.commons.dbcp2.BasicDataSource">
+        <property name="driverClassName" value="#{dataSourceConfig['mysqlDriverClassName']}"></property>
+        <property name="url"
+                  value="#{dataSourceConfig['mysqlUrl']}">
+        </property>
+        <property name="username" value="#{dataSourceConfig['mysqlUserName']}"></property>
+        <property name="password" value="#{dataSourceConfig['mysqlPassword']}"></property>
+    </bean>
+
+    <!-- mybatis SqlSessionFactoryBean -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+        <property name="mapperLocations" value="classpath:com/bamboo/mapper/**/*.xml"></property>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.bamboo.mapper" />
+    </bean>
+
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+        <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
     </bean>
 
     <!-- mybatis mapper package scan -->

@@ -8,23 +8,26 @@ import java.util.List;
 
 public interface UserMapper {
     // 회원 등록.
-    public void insertUser(UserDTO user);
+    void insertUser(UserDTO user);
 
     // response할 것만 뽑아다 주기
-    public List<UserVO> getUserDataforResponse();
+    List<UserVO> getUserDataforResponse();
 
     // 크롤링 전 기존 자료 가져다 쓰기
-    public List<UserDataRecord> getUserDataforUpdate();
+    List<UserDataRecord> getUserDataforUpdate();
 
     // 크롤링 뒤 DB update.
-    public void updateUserData(UserDataRecord user);
+    void updateUserData(UserDataRecord user);
 
     // 회원 삭제.
-    public void deleteUser(UserDTO user);
+    void deleteUser(UserDTO user);
 
     // 등록된 회원 정보 가져오기
-    public UserDataRecord getUser(UserDTO user);
+    UserDataRecord getUser(UserDTO user);
 
     // 등록된 회원 (githubId, userCode) 가져오기
-    public UserDTO getUserForCheck(UserDTO user);
+    UserDTO getUserForCheck(UserDTO user);
+
+    // isCommitToday false로 초기화
+    void setFalseIsCommitToday(UserDataRecord user);
 }

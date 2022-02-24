@@ -17,9 +17,10 @@ public class UserDataRecord {
     private int unpaidFine;             // (참여일 - 커밋일) * 500 - paidFine. service
     private int commitsInARow;
     private int totalCommits;
-    private String participationRate;   // 커밋일 /  참여일. service
+    private int elapsedDay;
     private int rankPower;              // commitsInARow * 10 + 커밋일 * 5 + totalCommits - (unpaidFine / 50)
     private String userImg;
     private Date lastUpdate;
     private int commitDayCount;
+    private int isCommitToday;
 }
