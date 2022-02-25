@@ -1,6 +1,7 @@
 package com.bamboo.mapper;
 
 import com.bamboo.domain.UserDTO;
+import com.bamboo.domain.UserDataRecord;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.junit.Test;
@@ -26,5 +27,13 @@ public class UserMapperTests {
         mapper.insertUser(user);
 
         log.info(user);
+    }
+
+    @Test
+    public void testSetFalseIsCommitToday() {
+        UserDataRecord user = new UserDataRecord();
+        user.setId("codeisneverodd");
+
+        mapper.setFalseIsCommitToday(user);
     }
 }

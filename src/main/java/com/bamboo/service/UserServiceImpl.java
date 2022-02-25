@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
     public List<UserVO> getUserListforResponse() {
         log.info("getUserListforUpdate.....");
 
-        Calendar calendar = new GregorianCalendar();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
         calendar.add(Calendar.DATE, -1);
         Date yesterday = calendar.getTime();
 
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
     public void updateDB() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-        Calendar calendar = new GregorianCalendar();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
         Date today = calendar.getTime();
         calendar.add(Calendar.DATE, -1);
         Date yesterday = calendar.getTime();
@@ -122,6 +122,22 @@ public class UserServiceImpl implements UserService {
             Date lastUpdate = elem.getLastUpdate();
 
             try {
+                Calendar lastCal = Calendar.getInstance();
+                lastCal.setTime(elem.getLastUpdate());
+
+                Calendar todayCal = Calendar.getInstance();
+
+                log.info("================");
+                log.info(lastCal.get(Calendar.DATE));
+                log.info(todayCal.get(Calendar.DATE));
+
+                if (lastCal.get(Calendar.DATE) != todayCal.get(Calendar.DATE)) {
+                    log.info("inside if state =====================");
+
+                    //mapper.setFalseIsCommitToday(elem);
+                    elem.setIsCommitToday(0);
+                }
+
                 // Github 프로필 이미지 링크 크롤링
                 String url = "https://github.com/" + githubId;
                 Connection connection = Jsoup.connect(url);
@@ -143,10 +159,6 @@ public class UserServiceImpl implements UserService {
                 } else {
                     // 한번이라도 반영한 적 있다면... 크롤링 시작은 마지막 업데이트 날짜일!
                     crawlingStart = lastUpdate;
-
-                    if (lastUpdate.getTime() < today.getTime()) {
-                        mapper.setFalseIsCommitToday(elem);
-                    }
                 }
 
                 calendar.setTime(crawlingStart);
@@ -196,7 +208,6 @@ public class UserServiceImpl implements UserService {
                 elem.setRankPower(elem.getCommitsInARow() * 10 + elem.getCommitDayCount() * 5
                                     + elem.getTotalCommits() - (elem.getUnpaidFine() / 50));
                 elem.setUserImg(avatarUrl);
-                elem.setLastUpdate(today);
 
                 // 이후 업데이트 sql 매퍼 호출.
                 mapper.updateUserData(elem);
@@ -238,7 +249,7 @@ public class UserServiceImpl implements UserService {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-        Calendar calendar = new GregorianCalendar();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
         Date today = calendar.getTime();
         calendar.add(Calendar.DATE, -1);
         Date yesterday = calendar.getTime();
@@ -320,7 +331,6 @@ public class UserServiceImpl implements UserService {
             record.setRankPower(record.getCommitsInARow() * 10 + record.getCommitDayCount() * 5
                     + record.getTotalCommits() - (record.getUnpaidFine() / 50));
             record.setUserImg(avatarUrl);
-            record.setLastUpdate(today);
 
             int yesterdayTimeDay = (int) yesterday.getTime() / (1000 * 24 * 60 * 60);
             int startedTimeDay = (int) record.getStartedAt().getTime() / (1000 * 24 * 60 * 60) - 1;

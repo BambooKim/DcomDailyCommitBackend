@@ -27,7 +27,6 @@
         update table_user
         set
             userimg = #{userImg},
-            lastupdate = #{lastUpdate},
             totalcommits = #{totalCommits},
             commitdaycount = #{commitDayCount},
             commitsinarow = #{commitsInARow},
