@@ -11,6 +11,8 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -18,15 +20,17 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Log4j2
 @Service
 @AllArgsConstructor
+@PropertySource("classpath:server.properties")
 public class UserServiceImpl implements UserService {
 
-    private final static String ACCESS_CODE = "access";
+    Environment env;
 
     private UserMapper mapper;
 
@@ -42,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
         // 1. AccessCode의 유효성 검사.
         String inputAccessCode = user.getAccessCode();
-        if (!inputAccessCode.equals(ACCESS_CODE)) {
+        if (!inputAccessCode.equals(env.getProperty("ACCESS_CODE"))) {
             throw new WrongAccessCodeException("Wrong Access Code");
         }
 
@@ -80,24 +84,48 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserVO> getUserListforResponse() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
         log.info("getUserListforUpdate.....");
 
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
-        calendar.add(Calendar.DATE, -1);
-        Date yesterday = calendar.getTime();
+        Calendar yesterDayCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
+        yesterDayCal.add(Calendar.DATE, -1);
 
         List<UserVO> list = mapper.getUserDataforResponse();
         for (int i = 0; i < list.size(); i++) {
             list.get(i).setRank(i+1);
 
-            int yesterdayTimeDay = (int) yesterday.getTime() / (1000 * 24 * 60 * 60);
-            int startedTimeDay = (int) list.get(i).getStartedAt().getTime() / (1000 * 24 * 60 * 60) - 1;
+            try {
+                // manipulate yesterday
+                int yesterdayYear = yesterDayCal.get(Calendar.YEAR);
+                int yesterdayMonth = yesterDayCal.get(Calendar.MONTH);
+                int yesterdayDate = yesterDayCal.get(Calendar.DATE);
 
-            int elapsedTimeDay = yesterdayTimeDay - startedTimeDay;
+                Date yesterDayInDate = simpleDateFormat.parse(yesterdayYear + "-" + yesterdayMonth + "-" + yesterdayDate);
 
-            list.get(i).setUnpaidFine((elapsedTimeDay - list.get(i).getCommitDayCount()) * 500 - list.get(i).getPaidFine());
+                // manipulate startday
+                Calendar startCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
+                startCal.setTime(list.get(i).getStartedAt());
 
-            list.get(i).setElapsedDay(elapsedTimeDay + 1);
+                int startYear = startCal.get(Calendar.YEAR);
+                int startMonth = startCal.get(Calendar.MONTH);
+                int startDate = startCal.get(Calendar.DATE);
+
+                Date startDayInDate = simpleDateFormat.parse(startYear + "-" + startMonth + "-" + startDate);
+
+                log.debug("yesterday: " + yesterDayInDate);
+                log.debug("startday: " + startDayInDate);
+
+                // subtract dates
+                int elapsedTimeDay = (int) Math.round(((yesterDayInDate.getTime() - startDayInDate.getTime()) / (1000.0 * 24.0 * 60.0 * 60.0))) + 1;
+
+                log.debug("elapsed: " + elapsedTimeDay);
+
+                list.get(i).setUnpaidFine((elapsedTimeDay - list.get(i).getCommitDayCount()) * 500 - list.get(i).getPaidFine());
+                list.get(i).setElapsedDay(elapsedTimeDay + 1);
+            } catch (ParseException e) {
+
+            }
         }
 
         return list;
@@ -140,7 +168,7 @@ public class UserServiceImpl implements UserService {
 
                 // Github 프로필 이미지 링크 크롤링
                 String url = "https://github.com/" + githubId;
-                Connection connection = Jsoup.connect(url);
+                Connection connection = getJsoupConnection(url, env.getProperty("cookie"));
 
                 Document document = connection.get();
                 Elements avatarElem = document.select("div.js-profile-editable-replace img").first()
@@ -173,11 +201,17 @@ public class UserServiceImpl implements UserService {
                         try {
                             Date rectDate = simpleDateFormat.parse(data_date);
 
+/*                            if (githubId.equals("bambookim")) {
+                                log.debug("tag: " + tags);
+                            }*/
+
                             // 스터디 시작일과 각 잔디의 날짜를 비교함. 시작일 이후의 어제까지의 잔디들만 선택.
                             if (calendar.getTime().getTime() <= rectDate.getTime()
                                     && rectDate.getTime() <= yesterday.getTime()) {
                                 int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
                                 elem.setTotalCommits(elem.getTotalCommits() + commitCountofDay);
+
+                                log.debug(rectDate + " " + commitCountofDay);
 
                                 if (commitCountofDay != 0) {
                                     // 어떤 날에 커밋을 1개 이상 했다면...
@@ -263,28 +297,17 @@ public class UserServiceImpl implements UserService {
         try {
             // Github 프로필 이미지 링크 크롤링
             String url = "https://github.com/" + githubId;
-            Connection connection = Jsoup.connect(url);
+            Connection connection = getJsoupConnection(url, env.getProperty("cookie"));
 
             Document document = connection.get();
             Elements avatarElem = document.select("div.js-profile-editable-replace img").first()
                     .getElementsByAttribute("src");     // may producee nullpointerexception.
             String avatarUrl = avatarElem.get(0).attr("src");
 
-            log.debug("\n\n");
             log.debug(githubId);
             log.debug(avatarUrl);
 
-            // 오늘 날짜, 스터디 시작 날짜, 마지막 디비 업데이트 날짜 비교
-            Date crawlingStart;
-            if (lastUpdate == null) {
-                // 등록 후 한번도 반영하지 않았다면... 크롤링 시작은 스터디 시작일!
-                crawlingStart = startedAt;
-            } else {
-                // 한번이라도 반영한 적 있다면... 크롤링 시작은 마지막 업데이트 날짜일!
-                crawlingStart = lastUpdate;
-            }
-
-            calendar.setTime(crawlingStart);
+            calendar.setTime(startedAt);
             calendar.add(Calendar.DATE, -1);
 
             Elements rects = document.select("div.js-calendar-graph rect");
@@ -294,29 +317,14 @@ public class UserServiceImpl implements UserService {
 
                 if (!data_date.isEmpty()) {
                     try {
+                        log.debug("tag: " + tags);
                         Date rectDate = simpleDateFormat.parse(data_date);
 
-                        // 스터디 시작일과 각 잔디의 날짜를 비교함. 시작일 이후의 어제까지의 잔디들만 선택.
-                        if (calendar.getTime().getTime() <= rectDate.getTime()
-                                && rectDate.getTime() <= yesterday.getTime()) {
+                        if (rectDate.after(calendar.getTime())) {
                             int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
-                            record.setTotalCommits(record.getTotalCommits() + commitCountofDay);
 
-                            if (commitCountofDay != 0) {
-                                // 어떤 날에 커밋을 1개 이상 했다면...
-
-                                record.setCommitDayCount(record.getCommitDayCount() + 1);
-
-                                record.setCommitsInARow(record.getCommitsInARow() + 1);
-                            } else {
-                                // 어떤 날에 커밋이 아예 없다면...
-
-                                record.setCommitsInARow(0);
-                            }
-
-                            log.info(data_date + " " + commitCountofDay);
-                        } else if (rectDate.getTime() > yesterday.getTime()) {
-                            int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
+                            log.debug("rectDate: " + rectDate);
+                            log.debug("Initial Day Commit: " + commitCountofDay);
 
                             if (commitCountofDay > 0) {
                                 record.setIsCommitToday(1);
@@ -332,11 +340,7 @@ public class UserServiceImpl implements UserService {
                     + record.getTotalCommits() - (record.getUnpaidFine() / 50));
             record.setUserImg(avatarUrl);
 
-            int yesterdayTimeDay = (int) yesterday.getTime() / (1000 * 24 * 60 * 60);
-            int startedTimeDay = (int) record.getStartedAt().getTime() / (1000 * 24 * 60 * 60) - 1;
-            int elapsedTimeDay = yesterdayTimeDay - startedTimeDay;
-
-            record.setElapsedDay(elapsedTimeDay + 1);
+            record.setElapsedDay(1);
 
             // 이후 업데이트 sql 매퍼 호출.
             mapper.updateUserData(record);
@@ -359,5 +363,13 @@ public class UserServiceImpl implements UserService {
         initialUser.setIsCommitToday(record.getIsCommitToday());
 
         return initialUser;
+    }
+
+    Connection getJsoupConnection(String url, String cookie) {
+        return Jsoup.connect(url)
+                .cookie("Cookie", cookie)
+                .header("accept-language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
+                .header("acept-encoding", "gzip, deflate, br")
+                .header("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
     }
 }

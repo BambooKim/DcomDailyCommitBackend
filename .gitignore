@@ -1,5 +1,6 @@
 lib/
 src/main/resources/db-connection.properties
+src/main/resources/server.properties
 target/
 .DS_Store
 

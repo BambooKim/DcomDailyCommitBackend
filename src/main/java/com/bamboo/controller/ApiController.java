@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {""}, allowCredentials = "true")
 @Log4j2
 @AllArgsConstructor
 public class ApiController {
