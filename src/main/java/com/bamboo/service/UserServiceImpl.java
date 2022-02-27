@@ -11,6 +11,8 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -30,11 +32,14 @@ import java.util.*;
 @PropertySource("classpath:server.properties")
 public class UserServiceImpl implements UserService {
 
-    Environment env;
+    @Autowired
+    ApplicationContext ctx;
 
     private UserMapper mapper;
 
     public UserServiceImpl(UserMapper mapper) {
+        //TimeZone.setDefault(TimeZone.getTimeZone("KST"));
+
         this.mapper = mapper;
     }
 
@@ -50,7 +55,7 @@ public class UserServiceImpl implements UserService {
 
         // 1. AccessCode의 유효성 검사.
         String inputAccessCode = user.getAccessCode();
-        if (!inputAccessCode.equals(env.getProperty("ACCESS_CODE"))) {
+        if (!inputAccessCode.equals(ctx.getEnvironment().getProperty("ACCESS_CODE"))) {
             throw new WrongAccessCodeException("Wrong Access Code");
         }
 
@@ -72,7 +77,7 @@ public class UserServiceImpl implements UserService {
         }
 
         log.debug("Code: " + statusCode);
-        if (statusCode == 404 || statusCode == 400) {
+        if (statusCode == 404 || statusCode == 400 || statusCode == 406) {
             throw new NoGithubIdFoundException("No ID found");
         }
 
@@ -88,7 +93,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserVO> getUserListforResponse() {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 
         log.info("getUserListforUpdate.....");
 
@@ -137,7 +142,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateDB() {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
         Date today = calendar.getTime();
@@ -154,10 +159,10 @@ public class UserServiceImpl implements UserService {
             Date lastUpdate = elem.getLastUpdate();
 
             try {
-                Calendar lastCal = Calendar.getInstance();
+                Calendar lastCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
                 lastCal.setTime(elem.getLastUpdate());
 
-                Calendar todayCal = Calendar.getInstance();
+                Calendar todayCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
 
                 log.info("================");
                 log.info(lastCal.get(Calendar.DATE));
@@ -211,7 +216,7 @@ public class UserServiceImpl implements UserService {
 
                             // 스터디 시작일과 각 잔디의 날짜를 비교함. 시작일 이후의 어제까지의 잔디들만 선택.
                             if (calendar.getTime().getTime() <= rectDate.getTime()
-                                    && rectDate.getTime() <= yesterday.getTime()) {
+                                    && rectDate.getTime() <= today.getTime()) {
                                 int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
                                 elem.setTotalCommits(elem.getTotalCommits() + commitCountofDay);
 
@@ -232,7 +237,7 @@ public class UserServiceImpl implements UserService {
                                 log.debug(data_date + " " + commitCountofDay);
                             }
 
-                            if (rectDate.after(yesterday)) {
+                            if (rectDate.after(today)) {
                                 int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
 
                                 log.debug("&&&& Into the else-if state &&&&");
@@ -290,7 +295,7 @@ public class UserServiceImpl implements UserService {
 
         UserVO initialUser = new UserVO();
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
         Date today = calendar.getTime();

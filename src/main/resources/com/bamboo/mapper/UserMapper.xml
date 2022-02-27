@@ -7,7 +7,7 @@
 
     <select id="getUserDataforResponse" resultType="com.bamboo.domain.UserVO">
         <![CDATA[
-        select id, name, paidfine, startedat, commitsinarow, totalcommits, rankpower, userimg, commitdaycount, iscommittoday
+        select id, name, paidfine, convert_tz(startedat, '+09:00', '+00:00') as startedat, commitsinarow, totalcommits, rankpower, userimg, commitdaycount, iscommittoday
         from table_user order by rankpower desc
         ]]>
     </select>
@@ -18,7 +18,7 @@
     </insert>
 
     <select id="getUserDataforUpdate" resultType="com.bamboo.domain.UserDataRecord">
-        select id, startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
+        select id, convert_tz(startedat, '+09:00', '+00:00') as startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
         from table_user
     </select>
 
@@ -50,7 +50,7 @@
 
     <select id="getUser" resultType="com.bamboo.domain.UserDataRecord">
         <![CDATA[
-        select id, name, startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
+        select id, name, convert_tz(startedat, '+09:00', '+00:00') as startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
         from table_user where id = #{githubId}
         ]]>
     </select>

@@ -8,8 +8,4 @@
     <mvc:annotation-driven></mvc:annotation-driven>
     <context:component-scan base-package="com.bamboo.controller" />
 
-    <context:component-scan base-package="com.bamboo.scheduler"/>
-    <task:scheduler id="jobScheduler" pool-size="10"/>
-    <task:annotation-driven scheduler="jobScheduler"/>
-
 </beans>
