@@ -177,6 +177,13 @@
             <version>1.14.3</version>
         </dependency>
 
+        <!-- RateLimitJ -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>26.0-jre</version>
+        </dependency>
+
     </dependencies>
 
     <build>

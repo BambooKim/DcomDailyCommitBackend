@@ -26,13 +26,17 @@ import java.util.*;
 
 @Log4j2
 @Service
-@AllArgsConstructor
+//@AllArgsConstructor
 @PropertySource("classpath:server.properties")
 public class UserServiceImpl implements UserService {
 
     Environment env;
 
     private UserMapper mapper;
+
+    public UserServiceImpl(UserMapper mapper) {
+        this.mapper = mapper;
+    }
 
     @Override
     public void registerUser(UserDTO user) throws NoGithubIdFoundException, WrongAccessCodeException, UserAlreadyExistsException, BlankArgumentException {
@@ -138,7 +142,7 @@ public class UserServiceImpl implements UserService {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
         Date today = calendar.getTime();
         calendar.add(Calendar.DATE, -1);
-        Date yesterday = calendar.getTime();
+        final Date yesterday = calendar.getTime();
 
         // DB의 각 레코드들이 리스트 형태로 반환된다.
         List<UserDataRecord> list = mapper.getUserDataforUpdate();
@@ -168,15 +172,14 @@ public class UserServiceImpl implements UserService {
 
                 // Github 프로필 이미지 링크 크롤링
                 String url = "https://github.com/" + githubId;
-                Connection connection = getJsoupConnection(url, env.getProperty("cookie"));
+                Connection connection = getJsoupConnection(url);
 
                 Document document = connection.get();
                 Elements avatarElem = document.select("div.js-profile-editable-replace img").first()
                         .getElementsByAttribute("src");     // may producee nullpointerexception.
                 String avatarUrl = avatarElem.get(0).attr("src");
 
-                log.debug("\n\n");
-                log.debug(githubId);
+                log.debug("Github Id: " + githubId);
                 log.debug(avatarUrl);
 
                 // 오늘 날짜, 스터디 시작 날짜, 마지막 디비 업데이트 날짜 비교
@@ -202,8 +205,9 @@ public class UserServiceImpl implements UserService {
                             Date rectDate = simpleDateFormat.parse(data_date);
 
 /*                            if (githubId.equals("bambookim")) {
-                                log.debug("tag: " + tags);
+
                             }*/
+                            //log.debug("tag: " + tags);
 
                             // 스터디 시작일과 각 잔디의 날짜를 비교함. 시작일 이후의 어제까지의 잔디들만 선택.
                             if (calendar.getTime().getTime() <= rectDate.getTime()
@@ -226,8 +230,13 @@ public class UserServiceImpl implements UserService {
                                 }
 
                                 log.debug(data_date + " " + commitCountofDay);
-                            } else if (rectDate.getTime() > yesterday.getTime()) {
+                            }
+
+                            if (rectDate.after(yesterday)) {
                                 int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
+
+                                log.debug("&&&& Into the else-if state &&&&");
+                                log.debug(rectDate + " - " + commitCountofDay);
 
                                 if (commitCountofDay > 0) {
                                     elem.setIsCommitToday(1);
@@ -297,14 +306,14 @@ public class UserServiceImpl implements UserService {
         try {
             // Github 프로필 이미지 링크 크롤링
             String url = "https://github.com/" + githubId;
-            Connection connection = getJsoupConnection(url, env.getProperty("cookie"));
+            Connection connection = getJsoupConnection(url);
 
             Document document = connection.get();
             Elements avatarElem = document.select("div.js-profile-editable-replace img").first()
                     .getElementsByAttribute("src");     // may producee nullpointerexception.
             String avatarUrl = avatarElem.get(0).attr("src");
 
-            log.debug(githubId);
+            log.debug("Github Id: " + githubId);
             log.debug(avatarUrl);
 
             calendar.setTime(startedAt);
@@ -317,7 +326,7 @@ public class UserServiceImpl implements UserService {
 
                 if (!data_date.isEmpty()) {
                     try {
-                        log.debug("tag: " + tags);
+                        //log.debug("tag: " + tags);
                         Date rectDate = simpleDateFormat.parse(data_date);
 
                         if (rectDate.after(calendar.getTime())) {
@@ -365,9 +374,13 @@ public class UserServiceImpl implements UserService {
         return initialUser;
     }
 
-    Connection getJsoupConnection(String url, String cookie) {
+    Connection getJsoupConnection(String url) {
         return Jsoup.connect(url)
-                .cookie("Cookie", cookie)
+                .cookie("tz", "Asia%2FSeoul")
+                .cookie("logged_in", "yes")
+                .cookie("_octo", Objects.requireNonNull(env.getProperty("_octo")))
+                .cookie("user_session", Objects.requireNonNull(env.getProperty("userSession")))
+                .userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36")
                 .header("accept-language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
                 .header("acept-encoding", "gzip, deflate, br")
                 .header("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
