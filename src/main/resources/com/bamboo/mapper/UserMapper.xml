@@ -7,24 +7,24 @@
 
     <select id="getUserDataforResponse" resultType="com.bamboo.domain.UserVO">
         <![CDATA[
-        select id, name, paidfine, convert_tz(startedat, '+09:00', '+00:00') as startedat, commitsinarow, totalcommits, rankpower, userimg, commitdaycount, iscommittoday
-        from table_user order by rankpower desc
+        select id, name, paidfine, startedat, commitsinarow, totalcommits, rankpower, userimg, commitdaycount, iscommittoday
+        from table_user_copy order by rankpower desc
         ]]>
     </select>
 
     <insert id="insertUser">
-        insert into table_user (id, name, usercode)
+        insert into table_user_copy (id, name, usercode)
         values (#{githubId}, #{korName}, #{userCode})
     </insert>
 
     <select id="getUserDataforUpdate" resultType="com.bamboo.domain.UserDataRecord">
-        select id, convert_tz(startedat, '+09:00', '+00:00') as startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
-        from table_user
+        select id, startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
+        from table_user_copy
     </select>
 
     <update id="updateUserData">
         <![CDATA[
-        update table_user
+        update table_user_copy
         set
             userimg = #{userImg},
             totalcommits = #{totalCommits},
@@ -38,26 +38,26 @@
 
     <update id="setFalseIsCommitToday">
         <![CDATA[
-            update table_user set iscommittoday = 0 where id = #{id}
+        update table_user_copy set iscommittoday = 0 where id = #{id}
         ]]>
     </update>
 
     <delete id="deleteUser">
         <![CDATA[
-        delete from table_user where id = #{githubId}
+        delete from table_user_copy where id = #{githubId}
         ]]>
     </delete>
 
     <select id="getUser" resultType="com.bamboo.domain.UserDataRecord">
         <![CDATA[
-        select id, name, convert_tz(startedat, '+09:00', '+00:00') as startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
-        from table_user where id = #{githubId}
+        select id, name, startedat, commitsinarow, userimg, lastupdate, totalcommits, commitdaycount, iscommittoday
+        from table_user_copy where id = #{githubId}
         ]]>
     </select>
 
     <select id="getUserForCheck" parameterType="com.bamboo.domain.UserDTO" resultType="com.bamboo.domain.UserDTO">
         <![CDATA[
-        select id as githubId, usercode from table_user where id = #{githubId}
+        select id as githubId, usercode from table_user_copy where id = #{githubId}
         ]]>
     </select>
 </mapper>

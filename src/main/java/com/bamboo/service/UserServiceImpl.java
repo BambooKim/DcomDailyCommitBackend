@@ -5,7 +5,6 @@ import com.bamboo.domain.UserDataRecord;
 import com.bamboo.domain.UserVO;
 import com.bamboo.exception.*;
 import com.bamboo.mapper.UserMapper;
-import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -14,7 +13,6 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -28,7 +26,6 @@ import java.util.*;
 
 @Log4j2
 @Service
-//@AllArgsConstructor
 @PropertySource("classpath:server.properties")
 public class UserServiceImpl implements UserService {
 
@@ -96,9 +93,10 @@ public class UserServiceImpl implements UserService {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
 
         log.info("getUserListforUpdate.....");
-
         Calendar yesterDayCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
         yesterDayCal.add(Calendar.DATE, -1);
+
+        log.debug(yesterDayCal.getTime());
 
         List<UserVO> list = mapper.getUserDataforResponse();
         for (int i = 0; i < list.size(); i++) {
@@ -107,7 +105,8 @@ public class UserServiceImpl implements UserService {
             try {
                 // manipulate yesterday
                 int yesterdayYear = yesterDayCal.get(Calendar.YEAR);
-                int yesterdayMonth = yesterDayCal.get(Calendar.MONTH);
+                int yesterdayMonth = yesterDayCal.get(Calendar.MONTH) + 1;
+                log.debug("yesterday Month: " + yesterdayMonth);
                 int yesterdayDate = yesterDayCal.get(Calendar.DATE);
 
                 Date yesterDayInDate = simpleDateFormat.parse(yesterdayYear + "-" + yesterdayMonth + "-" + yesterdayDate);
@@ -117,7 +116,8 @@ public class UserServiceImpl implements UserService {
                 startCal.setTime(list.get(i).getStartedAt());
 
                 int startYear = startCal.get(Calendar.YEAR);
-                int startMonth = startCal.get(Calendar.MONTH);
+                int startMonth = startCal.get(Calendar.MONTH) + 1;
+                log.debug("start Month: " + startMonth);
                 int startDate = startCal.get(Calendar.DATE);
 
                 Date startDayInDate = simpleDateFormat.parse(startYear + "-" + startMonth + "-" + startDate);
@@ -168,6 +168,10 @@ public class UserServiceImpl implements UserService {
                 log.info(lastCal.get(Calendar.DATE));
                 log.info(todayCal.get(Calendar.DATE));
 
+                log.debug("Today Calendar: " + todayCal.getTime());
+                log.debug("Last update : " + lastCal.getTime());
+                log.debug("Yesterday : " + yesterday);
+
                 if (lastCal.get(Calendar.DATE) != todayCal.get(Calendar.DATE)) {
                     log.info("inside if state =====================");
 
@@ -216,7 +220,7 @@ public class UserServiceImpl implements UserService {
 
                             // 스터디 시작일과 각 잔디의 날짜를 비교함. 시작일 이후의 어제까지의 잔디들만 선택.
                             if (calendar.getTime().getTime() <= rectDate.getTime()
-                                    && rectDate.getTime() <= today.getTime()) {
+                                    && rectDate.getTime() <= yesterday.getTime()) {
                                 int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
                                 elem.setTotalCommits(elem.getTotalCommits() + commitCountofDay);
 
@@ -237,7 +241,7 @@ public class UserServiceImpl implements UserService {
                                 log.debug(data_date + " " + commitCountofDay);
                             }
 
-                            if (rectDate.after(today)) {
+                            if (rectDate.after(yesterday)) {
                                 int commitCountofDay = Integer.parseInt(tags.attr("data-count"));
 
                                 log.debug("&&&& Into the else-if state &&&&");

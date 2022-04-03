@@ -13,9 +13,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = {""}, allowCredentials = "true")
+@CrossOrigin(origins = "*", allowCredentials = "true")
 @Log4j2
-//@AllArgsConstructor
 public class ApiController {
 
     private UserService service;
