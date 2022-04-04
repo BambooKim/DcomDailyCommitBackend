@@ -21,4 +21,11 @@
         ]]>
     </update>
 
+    <insert id="insertIntoFineLog">
+        <![CDATA[
+        insert into table_fine_log_copy (id, fineonce, accumulation)
+        values (#{id}, #{fineOnce}, #{accumulation})
+        ]]>
+    </insert>
+
 </mapper>

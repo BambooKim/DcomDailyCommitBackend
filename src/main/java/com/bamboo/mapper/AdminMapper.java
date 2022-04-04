@@ -9,4 +9,7 @@ public interface AdminMapper {
 
     // user의 fine 업데이트
     void updateUserFine(Map map);
+
+    // fine log 테이블에 insert
+    void insertIntoFineLog(Map map);
 }

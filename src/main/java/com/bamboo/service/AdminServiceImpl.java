@@ -22,15 +22,21 @@ public class AdminServiceImpl implements AdminService {
         Map<String, Object> user = new HashMap<>();
         user.put("id", id);
         int userPaidFine = adminMapper.getUserPaidFine(user);
+        int accumulation = userPaidFine + fine;
 
         // 1. id에 해당하는 레코드를 찾아 paidFine에 더하여 update.
         Map<String, Object> map = new HashMap<>();
         map.put("id", id);
-        map.put("fine", userPaidFine + fine);
+        map.put("fine", accumulation);
 
         adminMapper.updateUserFine(map);
 
         // 2. 로그 기록 테이블에 납부 내역 insert.
+        Map<String, Object> fineInfoMap = new HashMap<>();
+        fineInfoMap.put("id", id);
+        fineInfoMap.put("fineOnce", fine);
+        fineInfoMap.put("accumulation", accumulation);
 
+        adminMapper.insertIntoFineLog(fineInfoMap);
     }
 }
